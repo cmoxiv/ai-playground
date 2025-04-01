@@ -87,7 +87,7 @@ class MazeEnv(gym.Env):
         self.loaded_maze = None
         self.maze_file = maze_file or files("zeit4150envs.resources").joinpath("mymaze-dota.txt")
         if self.maze_file:
-            self.load_maze_from_file(files.maze_file)
+            self.load_maze_from_file(self.maze_file)
         self.drawing = False
         self.drawn_cells = set()
         self.paused = True
