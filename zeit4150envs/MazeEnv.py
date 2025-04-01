@@ -43,7 +43,7 @@ class MazeEnv(gym.Env):
 
     def __init__(self, path_profiles=None,
                  vision_radius=2, render_mode=True,
-                 window_size=512, grid_size=32,
+                 window_size=512, grid_size=64,
                  episode_length_factor=16,
                  maze_file=None):
         super().__init__()
