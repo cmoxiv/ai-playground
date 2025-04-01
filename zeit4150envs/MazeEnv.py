@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import gymnasium as gym
 import math
 import pygame
