@@ -14,8 +14,8 @@ setup(
     package_data={
         'zeit4150envs': ['resources/*'],  # include all files in resources folder
     },
-    scripts=['random-agent-on-DOTA-maze.py',
-             'rl-agent-on-DOTA-maze.py'],
+    scripts=['zeit4150-demo-random-agent-on-DOTA-maze.py',
+             'zeit4150-demo-rl-agent-on-DOTA-maze.py'],
     install_requires=[
         'numpy>=1.21.0',
         'pygame>=2.0.0',
