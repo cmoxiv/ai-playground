@@ -133,7 +133,7 @@ class MyAgent():
 
 GRID_SIZE = 64
 env = MazeEnv(path_profiles=path_profiles, render_mode='human',
-              maze_file="./envs/mymaze-dota.txt",
+              maze_file="../zeit4150envs/resources/mymaze-dota.txt",
               window_size=512,
               vision_radius=1,
               grid_size=GRID_SIZE)
@@ -150,7 +150,6 @@ episode_reward = 0
 try:
     for ep in range(10000):
         for k in range(int(math.sqrt(2*(GRID_SIZE**2)))+10):
-            # action = env.action_space.sample()  # Random action
             action = agent.get_action(state)
             state, reward, terminated, truncated, info = env.step(action)
             env.render()
@@ -159,7 +158,6 @@ try:
             agent.learn(state, reward, terminated)
 
             if terminated or truncated:
-                # print(f"{done=} {truncated=} {reward=}")
                 print(f"{episode_reward=} {agent.epsilon=}")
                 episode_reward = 0
                 env.reset()
