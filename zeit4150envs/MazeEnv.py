@@ -284,8 +284,9 @@ class MazeEnv(gym.Env):
         elif event.key == pygame.K_l:
             self.load_maze()
         elif event.key == pygame.K_q:
-            pygame.quit()
-            sys.exit()
+            self.close()
+            # pygame.quit()
+            #sys.exit()
         elif event.unicode.isdigit():
             profile_index = int(event.unicode) - 1
             self.set_profile(profile_index)
@@ -364,9 +365,8 @@ class MazeEnv(gym.Env):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYUP:
+                self.close()
+            elif event.type == pygame.KEYDOWN:
                 self.handle_keybindings(event)
             self.handle_mouse_drawing(event)
 
