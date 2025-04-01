@@ -4,10 +4,10 @@ import pygame
 import numpy as np
 import random
 import time
+import sys
 import tkinter as tk
 from tkinter import filedialog
 from gymnasium import spaces
-
 from importlib.resources import files
 
 # Color constants for rendering
@@ -283,7 +283,7 @@ class MazeEnv(gym.Env):
             self.load_maze()
         elif event.key == pygame.K_q:
             pygame.quit()
-            exit()
+            sys.exit()
         elif event.unicode.isdigit():
             profile_index = int(event.unicode) - 1
             self.set_profile(profile_index)
@@ -363,7 +363,7 @@ class MazeEnv(gym.Env):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
+                sys.exit()
             elif event.type == pygame.KEYUP:
                 self.handle_keybindings(event)
             self.handle_mouse_drawing(event)
