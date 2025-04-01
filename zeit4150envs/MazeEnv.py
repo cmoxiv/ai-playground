@@ -8,6 +8,8 @@ import tkinter as tk
 from tkinter import filedialog
 from gymnasium import spaces
 
+from importlib.resources import files
+
 # Color constants for rendering
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -83,8 +85,9 @@ class MazeEnv(gym.Env):
         self.maze = np.full((grid_size, grid_size), OBSTACLE, dtype=np.int32)
         self.maze[self.goal_pos[0], self.goal_pos[1]] = GOAL
         self.loaded_maze = None
-        if maze_file:
-            self.load_maze_from_file(maze_file)
+        self.maze_file = maze_file or files("zeit4150envs.resources").joinpath("mymaze-dota.txt")
+        if self.maze_file:
+            self.load_maze_from_file(files.maze_file)
         self.drawing = False
         self.drawn_cells = set()
         self.paused = True

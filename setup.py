@@ -10,6 +10,10 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/cmoxiv/ai-playground',
     packages=find_packages(),
+    include_package_data=True,  # Required to include package_data
+    package_data={
+        'zeit4150envs': ['resources/*'],  # include all files in resources folder
+    },
     install_requires=[
         'numpy>=1.21.0',
         'pygame>=2.0.0',
