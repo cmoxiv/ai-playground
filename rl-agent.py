@@ -1,7 +1,7 @@
 
 import traceback as tb
-from ai.rlenv3 import MazeEnv
-from ai.rlenv3 import VEGETATION, SWAMP, OBSTACLE, LAVA, EMPTY  
+from envs.MazeEnv import MazeEnv
+from envs.MazeEnv import VEGETATION, SWAMP, OBSTACLE, LAVA, EMPTY  
 
 
 import numpy as np
@@ -138,12 +138,10 @@ path_profiles = [
 
 GRID_SIZE = 64
 env = MazeEnv(path_profiles=path_profiles, render_mode='human',
-              maze_file="./mymaze-dota.txt",
+              maze_file="./envs/mymaze-dota.txt",
               window_size=512,
               vision_radius=1,
               grid_size=GRID_SIZE)
-
-# env = TimeLimit(env, 200)
 
 state, _ = env.reset()
 done = False
@@ -155,8 +153,6 @@ import math
 episode_reward = 0
 
 try:
-    # reward = -0.1
-    # terminated = False
     for ep in range(10000):
         for k in range(int(math.sqrt(2*(GRID_SIZE**2)))+10):
             # action = env.action_space.sample()  # Random action
