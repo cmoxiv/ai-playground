@@ -58,7 +58,7 @@ class MazeEnv(gym.Env):
         self.grid_size = grid_size
         self.cell_size = window_size // grid_size
         # self.path_profiles = path_profiles
-        self.current_profile = path_profiles[0]
+        self.current_profile = self.path_profiles[0]
         self.overlay_time = 0
         self.overlay_text = ""
         self.vision_radius = vision_radius
