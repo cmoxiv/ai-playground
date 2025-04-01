@@ -127,7 +127,7 @@ class MyAgent():
 
 GRID_SIZE = 64
 env = MazeEnv(render_mode='human',
-              maze_file="zeit4150envs/resources/mymaze-dota.txt",
+              # maze_file="zeit4150envs/resources/mymaze-dota.txt",
               window_size=512,
               vision_radius=1,
               grid_size=GRID_SIZE)
