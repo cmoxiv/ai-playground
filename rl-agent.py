@@ -1,7 +1,7 @@
 
 import traceback as tb
-from envs.MazeEnv import MazeEnv
-from envs.MazeEnv import VEGETATION, SWAMP, OBSTACLE, LAVA, EMPTY  
+from zeit4150envs.MazeEnv import MazeEnv
+from zeit4150envs.MazeEnv import VEGETATION, SWAMP, OBSTACLE, LAVA, EMPTY  
 
 
 import numpy as np
@@ -129,12 +129,7 @@ class MyAgent():
 
 
 
-path_profiles = [  
-    (OBSTACLE, OBSTACLE, 0.5, OBSTACLE, .9, 2),
-    (VEGETATION, SWAMP, 0.2, OBSTACLE, 0.1, 2),
-    (LAVA, OBSTACLE, 0.1, SWAMP, 0.05, 2),
-    (SWAMP, VEGETATION, 0.2, OBSTACLE, 0.1, 2)
-]
+
 
 GRID_SIZE = 64
 env = MazeEnv(path_profiles=path_profiles, render_mode='human',

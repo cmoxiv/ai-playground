@@ -41,17 +41,23 @@ HP_LEVELS = {
 class MazeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, path_profiles,
+    def __init__(self, path_profiles=None,
                  vision_radius=2, render_mode=True,
                  window_size=512, grid_size=32,
                  episode_length_factor=16,
                  maze_file=None):
         super().__init__()
+        self.path_profiles = path_profiles or [  
+            (OBSTACLE, OBSTACLE, 0.5, OBSTACLE, .9, 2),
+            (VEGETATION, SWAMP, 0.2, OBSTACLE, 0.1, 2),
+            (LAVA, OBSTACLE, 0.1, SWAMP, 0.05, 2),
+            (SWAMP, VEGETATION, 0.2, OBSTACLE, 0.1, 2)
+        ]
         self.render_mode = render_mode
         self.window_size = window_size
         self.grid_size = grid_size
         self.cell_size = window_size // grid_size
-        self.path_profiles = path_profiles
+        # self.path_profiles = path_profiles
         self.current_profile = path_profiles[0]
         self.overlay_time = 0
         self.overlay_text = ""
