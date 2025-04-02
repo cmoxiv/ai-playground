@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import gymnasium as gym
 import math
 import pygame
@@ -43,6 +41,31 @@ HP_LEVELS = {
 
 
 class MazeEnv(gym.Env):
+    """MazeEnv represents a customizable maze environment for
+    reinforcement learning. The maze consists of a grid of tiles, each
+    of which can have different properties affecting the agent's
+    health and movement.
+
+    The goal of the agent is to navigate from its starting position to
+    the goal tile. Each tile can either heal or harm the agent,
+    influencing strategy choices. The maze supports multiple terrain
+    profiles, allowing various types of tiles with different behaviors
+    and effects.
+
+    The environment is interactive and allows real-time modifications
+    to the maze layout via mouse and keyboard controls, enabling quick
+    prototyping and experimentation.
+
+    Parameters:
+        path_profiles (list, optional): A list of terrain generation profiles.
+        vision_radius (int, optional): The radius of tiles visible to the agent.
+        render_mode (bool, optional): Whether to render the environment visually.
+        window_size (int, optional): The size of the rendering window in pixels.
+        grid_size (int, optional): The size of the maze grid.
+        episode_length_factor (int, optional): Factor influencing the maximum episode length.
+        maze_file (str, optional): File path to a maze configuration to load at initialization.
+
+    """
     metadata = {'render.modes': ['human']}
 
     def __init__(self, path_profiles=None,
@@ -61,7 +84,6 @@ class MazeEnv(gym.Env):
         self.window_size = window_size
         self.grid_size = grid_size
         self.cell_size = window_size // grid_size
-        # self.path_profiles = path_profiles
         self.current_profile = self.path_profiles[0]
         self.overlay_time = 0
         self.overlay_text = ""
@@ -79,6 +101,7 @@ class MazeEnv(gym.Env):
         self.info_text = ""
         self.elapsed_steps = 0
 
+        self.visualise_similar_observations = False
         self.maze_modified = False
         
         self.action_space = spaces.Discrete(5)
@@ -93,6 +116,7 @@ class MazeEnv(gym.Env):
         self.drawing = False
         self.drawn_cells = set()
         self.paused = True
+        # self.stored_maze = [False]
 
         if self.render_mode:
             pygame.init()
@@ -100,12 +124,23 @@ class MazeEnv(gym.Env):
             self.window = pygame.display.set_mode((self.window_size, self.window_size))
             pygame.display.set_caption("Maze Drawing")
             self.clock = pygame.time.Clock()
-            
+
+    def clear_maze(self):
+        """Clear the maze by setting all tiles to empty."""
+        if (self.maze == EMPTY).flat[:-1].all(): 
+            self.maze = self.stored_maze.copy()
+        else:
+            self.stored_maze = self.maze.copy()
+            self.maze = np.zeros((self.grid_size, self.grid_size), dtype=int)
+            self.maze_modified = True
+            self._show_text("Maze Cleared")
+        
     def new_maze(self):
         self.maze.fill(OBSTACLE)
+        self.maze_modified = True
         self._show_text("New Maze")
         
-    def reset(self, seed=None, options=None):
+    def reset(self, seed=None, pause=False):        
         if self.maze_modified:
             pass
         elif self.loaded_maze is not None:
@@ -113,13 +148,14 @@ class MazeEnv(gym.Env):
             self.maze_modified = False
         else:
             self.maze.fill(OBSTACLE)
+            self.maze_modified = True
         self.maze[self.goal_pos[0], self.goal_pos[1]] = GOAL
         self.drawn_cells.clear()
         self.agent_pos = [0, 0]
         self.initial_distance = self.hamming_distance_from_goal()
         self.initial_hp = self.initial_distance
         self.hp = float(self.initial_hp)
-        self.paused = False
+        self.paused = pause
         self.episode_reward = 0
         self.elapsed_steps = 0
         return self.get_observation(), {}
@@ -175,8 +211,8 @@ class MazeEnv(gym.Env):
         time_penalty = -self.action_cost
         return direction_reward + time_penalty
 
-    def get_observation(self):
-        ax, ay = self.agent_pos
+    def get_observation_vision(self, pos):
+        ax, ay = pos
         r = self.vision_radius
         obs = np.full((2 * r + 1, 2 * r + 1), OBSTACLE, dtype=np.int32)
         for dx in range(-r, r + 1):
@@ -184,7 +220,10 @@ class MazeEnv(gym.Env):
                 x, y = ax + dx, ay + dy
                 if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
                     obs[dx + r, dy + r] = self.maze[x, y]
-
+        return obs
+    
+    def get_observation(self):
+        obs = self.get_observation_vision(self.agent_pos)
         hp_ratio = self.hp / self.initial_hp
         if hp_ratio < 0.1:
             hp_status = HP_LEVELS['underfed']
@@ -274,15 +313,79 @@ class MazeEnv(gym.Env):
                         if distance == half_width + 1 and self.maze[nx, ny] != EMPTY:
                             self.maze[nx, ny] = primary if np.random.rand() > prob_mix else secondary
 
+    def show_keybinding_guide(self):
+        """Display a semi-transparent overlay with the keybinding guide."""
+        overlay = pygame.Surface((self.window_size, self.window_size), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        font = pygame.font.SysFont('Arial', 20)
+        keys = [
+            "0-9: Choose path profile to draw with mouse",
+            "n: New blank maze",
+            "N: New blank maze (paused)",
+            "c: Clear maze",
+            "C: Clear maze (paused)",
+            "r: Reset maze",
+            "R: Reset maze (paused)",
+            "l: Load maze",
+            "L: Load maze (paused)",
+            "O: Similar Observations (paused)",
+            "h: Show/Hide this guide",
+            # Add other keybindings here
+        ]
+        y = 50
+        for key in keys:
+            text_surface = font.render(key, True, (255, 255, 255))
+            overlay.blit(text_surface, (50, y))
+            y += 30
+        self.window.blit(overlay, (0, 0))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        
     def handle_keybindings(self, event):
+        mods = pygame.key.get_mods()
+        SHIFT_HELD = mods & pygame.KMOD_SHIFT
+
         if event.key == pygame.K_SPACE:
             self.paused = not self.paused
+        elif event.key == pygame.K_w:
+            self.paused = False
+            self._show_text("UP")
+            self.step(0)
+            self.paused = True
+        elif event.key == pygame.K_a:
+            self.paused = False
+            self._show_text("LEFT")
+            self.step(2)
+            self.paused = True
+        elif event.key == pygame.K_s:
+            self.paused = False
+            self._show_text("DOWN")
+            self.step(1)
+            self.paused = True
+        elif event.key == pygame.K_d:
+            self.paused = False
+            self._show_text("RIGHT")
+            self.step(3)
+            self.paused = True
         elif event.key == pygame.K_n:
             self.new_maze()
         elif event.key == pygame.K_s:
             self.save_maze()
         elif event.key == pygame.K_l:
             self.load_maze()
+        elif event.key == pygame.K_o and SHIFT_HELD:
+            self.visualise_similar_observations = not self.visualise_similar_observations
+        elif event.key == pygame.K_c and SHIFT_HELD:
+            self.clear_maze()
+            self.paused = True
+        elif event.key == pygame.K_c :
+            self.clear_maze()
+        elif event.key == pygame.K_r and SHIFT_HELD:
+            self.reset(pause=True)
+        elif event.key == pygame.K_r:
+            self.reset(pause=False)
+        elif event.key == pygame.K_h:
+            self.show_keybinding_guide()
         elif event.key == pygame.K_q:
             self.close()
             # pygame.quit()
@@ -306,9 +409,9 @@ class MazeEnv(gym.Env):
                 self.maze[gx, gy] = EMPTY
                 self.drawn_cells.add((gx, gy))
 
-    def render_agent_vision(self):
+    def render_agent_vision(self, pos):
         vision_surface = pygame.Surface((self.window_size, self.window_size), pygame.SRCALPHA)
-        vr, ax, ay = self.vision_radius, *self.agent_pos
+        vr, ax, ay = self.vision_radius, *pos
         pygame.draw.rect(vision_surface, LIGHT_BLUE,
                          ((ax - vr) * self.cell_size, (ay - vr) * self.cell_size,
                           (2 * vr + 1) * self.cell_size, (2 * vr + 1) * self.cell_size))
@@ -317,6 +420,31 @@ class MazeEnv(gym.Env):
                           (2 * vr + 1) * self.cell_size, (2 * vr + 1) * self.cell_size), 2)
         self.window.blit(vision_surface, (0, 0))
 
+    def highlight_similar_observation(self):
+        vision_area = self.get_observation_vision(self.agent_pos)
+        
+        overlay = pygame.Surface((self.window_size, self.window_size), pygame.SRCALPHA)
+        for x in range(self.grid_size - vision_area.shape[0] + 1):
+            for y in range(self.grid_size - vision_area.shape[1] + 1):
+                # window = self.maze[x:x + vision_area.shape[0],
+                #                    y:y + vision_area.shape[1]]
+                window = self.get_observation_vision([y, x])
+                if np.array_equal(window, vision_area):
+                    # print(f"{x=}, {y=}")
+                    # print(vision_area)
+                    # print(window)
+                    # print()
+                    self.render_agent_vision((y, x))
+                    # rect = pygame.Rect(
+                    #     y * (self.window_size // self.grid_size),
+                    #     x * (self.window_size // self.grid_size),
+                    #     vision_area.shape[1] * (self.window_size // self.grid_size),
+                    #     vision_area.shape[0] * (self.window_size // self.grid_size)
+                    # )
+                    # pygame.draw.rect(overlay, LIGHT_BLUE, rect)
+                    # pygame.draw.rect(overlay, DARKER_BLUE, rect, 2)
+        self.window.blit(overlay, (0, 0))
+        
     def render_text_overlay(self):
         if time.time() < self.overlay_time:
             overlay_surface = self.font.render(self.overlay_text, True, BLACK, WHITE)
@@ -359,8 +487,9 @@ class MazeEnv(gym.Env):
         pygame.draw.rect(self.window, GREEN,
                          (self.goal_pos[0] * self.cell_size, self.goal_pos[1] * self.cell_size, self.cell_size, self.cell_size))
 
-        self.render_agent_vision()
-        # self.render_text_overlay()
+        self.render_agent_vision(self.agent_pos)
+        if self.visualise_similar_observations:
+            self.highlight_similar_observation()
         self.render_footer()
 
         for event in pygame.event.get():
