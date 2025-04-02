@@ -328,6 +328,8 @@ class MazeEnv(gym.Env):
             "R: Reset maze (paused)",
             "l: Load maze",
             "L: Load maze (paused)",
+            "S: Save Environment",
+            "w/a/s/d: Move agent manullay (paused)", 
             "O: Similar Observations (paused)",
             "h: Show/Hide this guide",
             # Add other keybindings here
@@ -369,7 +371,7 @@ class MazeEnv(gym.Env):
             self.paused = True
         elif event.key == pygame.K_n:
             self.new_maze()
-        elif event.key == pygame.K_s:
+        elif event.key == pygame.K_s and SHIFT_HELD:
             self.save_maze()
         elif event.key == pygame.K_l:
             self.load_maze()
