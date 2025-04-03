@@ -189,7 +189,9 @@ class MazeEnv(gym.Env):
                 self._show_text("Maze saved")
             except Exception as e:
                 self._show_text("Failed to save maze")
-
+                pass
+            pass
+        self.paused = False
 
     def load_maze(self):
         self.paused = True
@@ -357,6 +359,13 @@ class MazeEnv(gym.Env):
 
         if event.key == pygame.K_SPACE:
             self.paused = not self.paused
+        elif event.key == pygame.K_s and SHIFT_HELD:
+            self.save_maze()
+        elif event.key == pygame.K_o and SHIFT_HELD:
+            self.visualise_similar_observations = not self.visualise_similar_observations
+        elif event.key == pygame.K_c and SHIFT_HELD:
+        elif event.key == pygame.K_r and SHIFT_HELD:
+            self.reset(pause=True)
         elif event.key == pygame.K_w:
             self.paused = False
             self._show_text("UP")
@@ -379,19 +388,12 @@ class MazeEnv(gym.Env):
             self.paused = True
         elif event.key == pygame.K_n:
             self.new_maze()
-        elif event.key == pygame.K_s and SHIFT_HELD:
-            self.save_maze()
         elif event.key == pygame.K_l:
             self.load_maze()
-        elif event.key == pygame.K_o and SHIFT_HELD:
-            self.visualise_similar_observations = not self.visualise_similar_observations
-        elif event.key == pygame.K_c and SHIFT_HELD:
             self.clear_maze()
             self.paused = True
         elif event.key == pygame.K_c :
             self.clear_maze()
-        elif event.key == pygame.K_r and SHIFT_HELD:
-            self.reset(pause=True)
         elif event.key == pygame.K_r:
             self.reset(pause=False)
         elif event.key == pygame.K_h:
