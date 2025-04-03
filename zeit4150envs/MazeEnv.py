@@ -364,6 +364,8 @@ class MazeEnv(gym.Env):
         elif event.key == pygame.K_o and SHIFT_HELD:
             self.visualise_similar_observations = not self.visualise_similar_observations
         elif event.key == pygame.K_c and SHIFT_HELD:
+            self.clear_maze()
+            self.paused = True
         elif event.key == pygame.K_r and SHIFT_HELD:
             self.reset(pause=True)
         elif event.key == pygame.K_w:
@@ -390,8 +392,6 @@ class MazeEnv(gym.Env):
             self.new_maze()
         elif event.key == pygame.K_l:
             self.load_maze()
-            self.clear_maze()
-            self.paused = True
         elif event.key == pygame.K_c :
             self.clear_maze()
         elif event.key == pygame.K_r:
