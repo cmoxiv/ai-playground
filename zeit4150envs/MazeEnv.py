@@ -160,6 +160,10 @@ class MazeEnv(gym.Env):
         self.elapsed_steps = 0
         return self.get_observation(), {}
 
+    def _show_text(self, text):
+        self.info_text = text
+        self.overlay_time = time.time() + 2
+        
     def load_maze_from_file(self, filename):
         try:
             self.loaded_maze = np.loadtxt(filename, dtype=np.int32)
@@ -170,9 +174,9 @@ class MazeEnv(gym.Env):
         except Exception as e:
             self._show_text("Failed to load maze")
 
-    def _show_text(self, text):
-        self.info_text = text
-        self.overlay_time = time.time() + 2
+    def save_maze_to_file(self, filename):
+        np.savetxt(filename, self.maze, fmt='%d')
+        return
 
     def save_maze(self):
         self.paused = True
@@ -180,8 +184,12 @@ class MazeEnv(gym.Env):
         root.withdraw()
         filename = filedialog.asksaveasfilename(defaultextension=".txt")
         if filename:
-            np.savetxt(filename, self.maze, fmt='%d')
-            self._show_text("Maze saved")
+            try:
+                np.savetxt(filename, self.maze, fmt='%d')
+                self._show_text("Maze saved")
+            except Exception as e:
+                self._show_text("Failed to save maze")
+
 
     def load_maze(self):
         self.paused = True
