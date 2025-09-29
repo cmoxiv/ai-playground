@@ -1,10 +1,15 @@
 import gymnasium as gym
-import pygame
+
 import numpy as np
 import random
 import time
 import tkinter as tk
 from tkinter import filedialog
+
+_root = tk.Tk()
+_root.withdraw()   # or use as needed
+
+import pygame
 from gymnasium import spaces
 from importlib.resources import files
 
