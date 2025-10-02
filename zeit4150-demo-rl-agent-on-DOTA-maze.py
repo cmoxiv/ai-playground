@@ -155,6 +155,7 @@ try:
                 print(f"{episode_reward=} {agent.epsilon=}")
                 episode_reward = 0
                 env.reset()
+                # agent.s
                 pass
             pass
 except KeyboardInterrupt:
